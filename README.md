@@ -4,6 +4,7 @@ Foi criado com fins de estudo e prática, explorando conceitos modernos de auten
 ⚠️ Este sistema não contempla todas as etapas de um sistema completo de autenticação em produção.
 
 ✨ Funcionalidades
+
 ✅ Registro de usuários com verificação por e-mail (token de confirmação)
 
 ✅ Login com geração de JWT e Refresh Token
