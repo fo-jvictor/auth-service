@@ -1,7 +1,7 @@
 Este projeto é um serviço de autenticação baseado em JWT desenvolvido em Java e Spring Boot.
 Foi criado com fins de estudo e prática, explorando conceitos modernos de autenticação e segurança em APIs REST.
 
-⚠️ Este sistema não contempla todas as etapas de um sistema completo de autenticação em produção.
+⚠️ Este sistema não contempla todas as etapas de um sistema completo de autenticação em produção e nem é recomendado usar-lo em prod.
 
 ✨ Funcionalidades
 
