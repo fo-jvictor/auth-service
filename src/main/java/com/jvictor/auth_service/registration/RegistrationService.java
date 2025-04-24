@@ -6,7 +6,6 @@ import com.jvictor.auth_service.email.EmailSender;
 import com.jvictor.auth_service.user.User;
 import com.jvictor.auth_service.user.UserRole;
 import com.jvictor.auth_service.user.UserService;
-import com.jvictor.auth_service.utils.HashingUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,6 @@ public class RegistrationService {
     private final UserService userService;
     private final ConfirmationTokenService confirmationTokenService;
     private final EmailSender emailSender;
-    private final HashingUtils hashingUtils;
 
     public String register(RegistrationRequest registrationRequest) {
         System.out.println("registering user: " + registrationRequest.getEmail());
@@ -31,7 +29,7 @@ public class RegistrationService {
 
         String token = userService.signUpUser(user);
 
-        String link = "http://localhost:8080/api/v1/registration/confirm?token=" + token;
+        String link = "http://localhost:8080/confirm?token=" + token;
 
         emailSender.sendEmail(registrationRequest.getEmail(),
                 RegistrationConstants.EMAIL_CONFIRMATION_SUBJECT,

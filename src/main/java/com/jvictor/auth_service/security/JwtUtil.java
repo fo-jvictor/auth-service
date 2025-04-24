@@ -4,7 +4,6 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.jvictor.auth_service.user.User;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -20,20 +19,19 @@ public class JwtUtil {
 
     public String generateToken(User userDetails) {
         return JWT.create()
-                //TODO: do not user username as subject as JWT can be easily decoded
-                .withSubject(userDetails.getUsername())
+                .withSubject(userDetails.getId())
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + Long.parseLong(expirationMillis)))
                 .sign(Algorithm.HMAC256(secret));
     }
 
-    public String extractUsername(String token) {
+    public String extractUserId(String token) {
         return JWT.decode(token).getSubject();
     }
 
-    public boolean validate(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isExpired(token);
+    public boolean validate(String token, User userDetails) {
+        String userId = extractUserId(token);
+        return userId.equals(userDetails.getId()) && !isExpired(token);
     }
 
     private boolean isExpired(String token) {
