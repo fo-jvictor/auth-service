@@ -16,12 +16,16 @@ public class EmailSender {
     private String MY_APP_EMAIL;
 
     public void sendEmail(String to, String subject, String content) {
-        System.out.println("Sending confirmation email to: " + to);
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(content);
-        message.setFrom(MY_APP_EMAIL);
-        mailSender.send(message);
+        try {
+            System.out.println("Sending confirmation email to: " + to);
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(content);
+            message.setFrom(MY_APP_EMAIL);
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Exception happened while sending email: " + e.getMessage());
+        }
     }
 }

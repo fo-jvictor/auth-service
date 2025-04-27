@@ -1,5 +1,6 @@
-package com.jvictor.auth_service.security.config;
+package com.jvictor.auth_service.security;
 
+import com.jvictor.auth_service.blocked_ip.BlockedIpFilter;
 import com.jvictor.auth_service.rate_limitter.RateLimitFilter;
 import com.jvictor.auth_service.user.UserService;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class WebSecurityConfig {
     private final UserService userService;
     private final JwtFilter jwtFilter;
     private final RateLimitFilter rateLimitFilter;
+    private final BlockedIpFilter blockedIpFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -39,7 +41,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> {
                     authorizationManagerRequestMatcherRegistry
                             .requestMatchers("/login", "/registration/**",
-                                    "/registration/confirm?token=**")
+                                    "/confirm",
+                                    "/confirmation-token/resend")
                             .permitAll()
                             .anyRequest()
                             .authenticated();
@@ -47,6 +50,7 @@ public class WebSecurityConfig {
                 })
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(daoAuthenticationProvider())
+                .addFilterBefore(blockedIpFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

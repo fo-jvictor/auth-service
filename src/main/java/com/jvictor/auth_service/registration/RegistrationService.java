@@ -6,7 +6,9 @@ import com.jvictor.auth_service.email.EmailSender;
 import com.jvictor.auth_service.user.User;
 import com.jvictor.auth_service.user.UserRole;
 import com.jvictor.auth_service.user.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ public class RegistrationService {
     private final ConfirmationTokenService confirmationTokenService;
     private final EmailSender emailSender;
 
+    @Transactional
     public String register(RegistrationRequest registrationRequest) {
         System.out.println("registering user: " + registrationRequest.getEmail());
         if (registrationRequest.getEmail() == null || registrationRequest.getEmail().isBlank()) {
@@ -27,7 +30,15 @@ public class RegistrationService {
 
         User user = buildRegistrationUser(registrationRequest);
 
-        String token = userService.signUpUser(user);
+        userService.checkIfEmailAlreadyRegistered(user.getEmail());
+
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        String encodedPassword = bCryptPasswordEncoder.encode(user.getPassword());
+        user.setPassword(encodedPassword);
+
+        userService.saveUser(user);
+
+        String token = confirmationTokenService.generateConfirmationTokenForUser(user);
 
         String link = "http://localhost:8080/confirm?token=" + token;
 
@@ -35,7 +46,7 @@ public class RegistrationService {
                 RegistrationConstants.EMAIL_CONFIRMATION_SUBJECT,
                 RegistrationConstants.EMAIL_CONFIRMATION_CONTENT + link);
 
-        return token;
+        return "User registered successfully";
     }
 
     public String confirmToken(String token) {

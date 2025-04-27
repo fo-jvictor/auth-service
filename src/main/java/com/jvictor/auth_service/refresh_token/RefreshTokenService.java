@@ -1,5 +1,6 @@
 package com.jvictor.auth_service.refresh_token;
 
+import com.jvictor.auth_service.blocked_ip.BlockedIpService;
 import com.jvictor.auth_service.commons.AuthenticationTokens;
 import com.jvictor.auth_service.security.JwtUtil;
 import com.jvictor.auth_service.user.User;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.jvictor.auth_service.utils.HashingUtils.SECRET_SALT;
+import static com.jvictor.auth_service.utils.HttpUtils.extractIpAddress;
 
 @Service
 @RequiredArgsConstructor
@@ -21,11 +22,12 @@ public class RefreshTokenService {
     private final HashingUtils hashingUtils;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final BlockedIpService blockedIpService;
 
-    public String createRefreshToken(User user) {
+    public String createRefreshToken(User user, String ipAddress) {
         System.out.println("creating refresh token for user: " + user.getEmail());
         String token = UUID.randomUUID().toString();
-        RefreshToken refreshToken = buildRefreshToken(user, token);
+        RefreshToken refreshToken = buildRefreshToken(user, token, ipAddress);
         refreshTokenRepository.save(refreshToken);
         return token;
     }
@@ -40,6 +42,15 @@ public class RefreshTokenService {
 
     public AuthenticationTokens generateNewAccessTokenForUser(String rawToken) {
         RefreshToken refreshToken = getRefreshToken(rawToken);
+        String currentIpAddress = extractIpAddress();
+
+        if (!currentIpAddress.equals(refreshToken.getIpAddress())) {
+            refreshToken.setIsRevoked(true);
+            refreshTokenRepository.save(refreshToken);
+            //saving suspect ip address
+            blockedIpService.saveBlockedIp(currentIpAddress);
+            throw new IllegalStateException("Invalid refresh token usage from different IP");
+        }
 
         if (refreshToken.getIsRevoked()) {
             throw new IllegalArgumentException("Refresh token is no longer valid.");
@@ -50,7 +61,7 @@ public class RefreshTokenService {
 
         User user = userService.getUserById(refreshToken.getUserId());
         String newAccessToken = jwtUtil.generateToken(user);
-        String newRefreshToken = createRefreshToken(user);
+        String newRefreshToken = createRefreshToken(user, currentIpAddress);
         return new AuthenticationTokens(newAccessToken, newRefreshToken);
     }
 
@@ -70,13 +81,13 @@ public class RefreshTokenService {
         refreshTokenRepository.deleteById(token);
     }
 
-    private RefreshToken buildRefreshToken(User user, String uuid) {
+    private RefreshToken buildRefreshToken(User user, String uuid, String ipAddress) {
         String hashedToken = hashingUtils.hashToken(uuid);
 
         return RefreshToken.builder()
                 .token(hashedToken)
                 .userId(user.getId())
-                .salt(SECRET_SALT)
+                .ipAddress(ipAddress)
                 .isRevoked(false)
                 .expiryDate(LocalDateTime.now().plusDays(1))
                 .build();

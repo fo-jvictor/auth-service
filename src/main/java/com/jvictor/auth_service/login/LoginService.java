@@ -11,6 +11,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import static com.jvictor.auth_service.utils.HttpUtils.extractIpAddress;
+
 @Service
 @RequiredArgsConstructor
 public class LoginService {
@@ -23,9 +25,10 @@ public class LoginService {
     public AuthenticationTokens login(LoginRequest loginRequest) {
         System.out.println("Logging in user: " + loginRequest.getUsername());
         authenticateUser(loginRequest);
+        String ipAddress = extractIpAddress();
         User user = userService.loadUserByUsername(loginRequest.getUsername());
         String accessToken = jwtUtil.generateToken(user);
-        String refreshToken = refreshTokenService.createRefreshToken(user);
+        String refreshToken = refreshTokenService.createRefreshToken(user, ipAddress);
 
         return new AuthenticationTokens(accessToken, refreshToken);
     }
@@ -37,6 +40,5 @@ public class LoginService {
 
         authenticationManager.authenticate(authentication);
     }
-
 
 }

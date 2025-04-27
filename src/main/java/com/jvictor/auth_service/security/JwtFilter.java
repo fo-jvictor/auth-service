@@ -1,6 +1,5 @@
-package com.jvictor.auth_service.security.config;
+package com.jvictor.auth_service.security;
 
-import com.jvictor.auth_service.security.JwtUtil;
 import com.jvictor.auth_service.user.User;
 import com.jvictor.auth_service.user.UserService;
 import jakarta.servlet.FilterChain;

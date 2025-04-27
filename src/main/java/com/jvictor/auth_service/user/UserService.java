@@ -15,7 +15,6 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final ConfirmationTokenService confirmationTokenService;
 
     public User loadUserByUsername(String email) {
         return userRepository.findByEmail(email).orElseThrow(() ->
@@ -31,21 +30,9 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    @Transactional
-    public String signUpUser(User user) {
-        Optional<User> userOpt = userRepository.findByEmail(user.getEmail());
-
-        if (userOpt.isPresent()) {
-            throw new IllegalStateException("email already registered.");
-        }
-
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        String encodedPassword = bCryptPasswordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
-
-        this.saveUser(user);
-
-        return confirmationTokenService.generateConfirmationTokenForUser(user);
+    public void checkIfEmailAlreadyRegistered(String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            throw new IllegalStateException("email already registered");
+        });
     }
-
 }

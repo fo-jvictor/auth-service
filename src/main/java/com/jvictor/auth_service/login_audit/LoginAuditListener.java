@@ -20,7 +20,7 @@ public class LoginAuditListener {
 
     @EventListener
     public void handleSuccess(AuthenticationSuccessEvent event) {
-        System.out.println("Login audit listener handle success: " + event.getAuthentication().getName());
+        System.out.println("Login audit listener handle success");
 
         Authentication authentication = event.getAuthentication();
 
