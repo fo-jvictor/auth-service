@@ -16,7 +16,7 @@ public class RefreshToken {
     private String id;
     private String token;
     private String userId;
-    private String ipAddress;
+    private String hashedIpAddress;
     private Boolean isRevoked;
     private LocalDateTime expiryDate;
 }

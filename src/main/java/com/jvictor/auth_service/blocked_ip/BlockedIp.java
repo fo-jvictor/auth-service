@@ -17,7 +17,7 @@ public class BlockedIp {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String ipAddress;
+    private String hashedIpAddress;
     private Long blockCount;
     private LocalDateTime lastTimeBlockedAt;
     private LocalDateTime blockedUntil;

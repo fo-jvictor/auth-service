@@ -15,20 +15,20 @@ public class LoginAudit {
     private String id;
 
     private String username;
-    private String ipAddress;
+    private String hashedIdAddress;
     private String userAgent;
     private Boolean success;
     private String reason;
     private LocalDateTime timestamp;
 
     public LoginAudit(String username,
-                      String ip,
+                      String hashedIdAddress,
                       String userAgent,
-                      boolean success,
+                      Boolean success,
                       String reason,
                       LocalDateTime timestamp) {
         this.username = username;
-        this.ipAddress = ip;
+        this.hashedIdAddress = hashedIdAddress;
         this.userAgent = userAgent;
         this.success = success;
         this.reason = reason;

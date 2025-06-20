@@ -5,7 +5,7 @@ import com.jvictor.auth_service.commons.AuthenticationTokens;
 import com.jvictor.auth_service.security.JwtUtil;
 import com.jvictor.auth_service.user.User;
 import com.jvictor.auth_service.user.UserService;
-import com.jvictor.auth_service.utils.HashingUtils;
+import com.jvictor.auth_service.utils.HashService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ import static com.jvictor.auth_service.utils.HttpUtils.extractIpAddress;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final HashingUtils hashingUtils;
+    private final HashService hashService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final BlockedIpService blockedIpService;
@@ -44,7 +44,9 @@ public class RefreshTokenService {
         RefreshToken refreshToken = getRefreshToken(rawToken);
         String currentIpAddress = extractIpAddress();
 
-        if (!currentIpAddress.equals(refreshToken.getIpAddress())) {
+        Boolean currentIpAndRefreshTokenIpMatches = hashService.matches(currentIpAddress, refreshToken.getHashedIpAddress());
+
+        if (!currentIpAndRefreshTokenIpMatches) {
             refreshToken.setIsRevoked(true);
             refreshTokenRepository.save(refreshToken);
             //saving suspect ip address
@@ -66,7 +68,7 @@ public class RefreshTokenService {
     }
 
     private RefreshToken getRefreshToken(String token) {
-        String hashedToken = hashingUtils.hashToken(token);
+        String hashedToken = hashService.hashRawValue(token);
         RefreshToken refreshToken = refreshTokenRepository.findByToken(hashedToken)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 
@@ -82,12 +84,13 @@ public class RefreshTokenService {
     }
 
     private RefreshToken buildRefreshToken(User user, String uuid, String ipAddress) {
-        String hashedToken = hashingUtils.hashToken(uuid);
+        String hashedToken = hashService.hashRawValue(uuid);
+        String hashedIpAddress = hashService.hashRawValue(ipAddress);
 
         return RefreshToken.builder()
                 .token(hashedToken)
                 .userId(user.getId())
-                .ipAddress(ipAddress)
+                .hashedIpAddress(hashedIpAddress)
                 .isRevoked(false)
                 .expiryDate(LocalDateTime.now().plusDays(1))
                 .build();

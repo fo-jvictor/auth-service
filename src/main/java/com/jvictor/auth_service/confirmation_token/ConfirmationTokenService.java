@@ -4,7 +4,7 @@ import com.jvictor.auth_service.email.EmailSender;
 import com.jvictor.auth_service.registration.RegistrationConstants;
 import com.jvictor.auth_service.user.User;
 import com.jvictor.auth_service.user.UserService;
-import com.jvictor.auth_service.utils.HashingUtils;
+import com.jvictor.auth_service.utils.HashService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ import java.util.UUID;
 public class ConfirmationTokenService {
 
     private final ConfirmationTokenRepository confirmationTokenRepository;
-    private final HashingUtils hashingUtils;
+    private final HashService hashService;
     private final UserService userService;
     private final EmailSender emailSender;
 
@@ -57,12 +57,12 @@ public class ConfirmationTokenService {
     }
 
     public Optional<ConfirmationToken> getToken(String token) {
-        String hashedToken = hashingUtils.hashToken(token);
+        String hashedToken = hashService.hashRawValue(token);
         return confirmationTokenRepository.findByToken(hashedToken);
     }
 
     private ConfirmationToken buildConfirmationToken(User user, String uuid) {
-        String hashedToken = hashingUtils.hashToken(uuid);
+        String hashedToken = hashService.hashRawValue(uuid);
 
         return ConfirmationToken.builder()
                 .token(hashedToken)

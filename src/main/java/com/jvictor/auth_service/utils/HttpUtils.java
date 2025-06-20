@@ -19,4 +19,9 @@ public class HttpUtils {
         return (forwarded != null) ? forwarded.split(",")[0] : request.getRemoteAddr();
     }
 
+    public static String getCurrentUserAgent() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        return (attrs != null) ? attrs.getRequest().getHeader("User-Agent") : "unknown";
+    }
+
 }
